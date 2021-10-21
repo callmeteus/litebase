@@ -1,4 +1,5 @@
-import { LiteBaseTable, PossibleFieldValues, InternalLiteBaseSchema } from "./Table";
+import { LiteBaseTable } from "./Table";
+import { InternalLiteBaseSchema, PossibleFieldValues } from "../types/Table";
 export interface TableFileDescriptor {
     /**
      * The table checksum

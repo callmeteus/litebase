@@ -2,7 +2,8 @@ import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import msgpack from "msgpack-lite";
 import zlib from "zlib";
 
-import { LiteBaseTable, LiteBaseSchema, PossibleFieldValues, InternalLiteBaseSchema } from "./Table";
+import { LiteBaseTable } from "./Table";
+import { InternalLiteBaseSchema, PossibleFieldValues } from "../types/Table";
 
 export interface TableFileDescriptor {
     /**
@@ -23,11 +24,20 @@ export interface TableFileDescriptor {
     schema: InternalLiteBaseSchema
 }
 
+/**
+ * Supported compression methods
+ */
+export enum LiteBaseCompressionType {
+    NONE,
+    ZLIB
+}
+
 export interface LiteBaseOptions {
     /**
      * If can compress the database file
+     * If true, Zlib wil be used
      */
-    compress: boolean,
+    compress: boolean | LiteBaseCompressionType,
 
     /**
      * If needs to drop the schema (delete the database file)
@@ -106,8 +116,10 @@ export class LiteBaseStorage {
         let file = readFileSync(this.filename);
 
         // Decompress it if needed
-        if (this.options.compress) {
-            file = zlib.inflateSync(file);
+        if (this.options.compress === true || this.options.compress !== LiteBaseCompressionType.NONE) {
+            if (this.options.compress == LiteBaseCompressionType.ZLIB) {
+                file = zlib.inflateSync(file);
+            }
         }
 
         // Parse it with msgpack

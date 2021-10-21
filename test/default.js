@@ -2,7 +2,14 @@ const { open, Table } = require("../out");
 
 const assert = require("assert");
 
+/**
+ * @type {import("../types/model/Storage").LiteBaseStorage}
+ */
 let storage;
+
+/**
+ * @type {import("../types/model/Table").LiteBaseTable}
+ */
 let table;
 
 describe("Default test", () => {

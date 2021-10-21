@@ -1,44 +1,5 @@
 import { LiteBaseStorage } from "./Storage";
-export declare type PossibleFieldValues = string | number | bigint | boolean;
-interface LiteBaseTableField {
-    type: "index" | "string" | "int" | "float" | "bigint" | "binary" | "enum" | "boolean";
-    autoIncrement?: boolean;
-    primary?: boolean;
-    null?: boolean;
-    default?: PossibleFieldValues;
-}
-interface InternalLiteBaseTableField extends LiteBaseTableField {
-    /**
-     * The field unique ID
-     */
-    __uuid?: number;
-    /**
-     * The field last auto increment number
-     */
-    __autoIncrement?: number;
-}
-/**
- * The litebase field identifier where
- * the key is the field name
- */
-export declare type LiteBaseSchema = {
-    [fieldName: string]: LiteBaseTableField;
-};
-/**
- * The internal litebase field identifier where
- * the key is the field name
- */
-export declare type InternalLiteBaseSchema = {
-    [fieldName: string]: InternalLiteBaseTableField;
-};
-/**
- * A single row value where
- * the key is the field unique ID and
- * the value is any possible field value
- */
-export declare type SingleRowValue = {
-    [fieldUuid: number]: PossibleFieldValues;
-};
+import { LiteBaseSchema, InternalLiteBaseSchema, PossibleFieldValues, SingleRowValue } from "../types/Table";
 export declare class LiteBaseTable {
     /**
      * The table name
@@ -146,13 +107,13 @@ export declare class LiteBaseTable {
      * @param query The query to be executed
      * @returns
      */
-    find(query?: Record<string, PossibleFieldValues>): Record<string, PossibleFieldValues>[];
+    find(query?: SingleRowValue): SingleRowValue[];
     /**
      * Executes the given query and returns one value
      * @param query The query to be executed
      * @returns
      */
-    findOne(query: number | Record<string, PossibleFieldValues>): Record<string, PossibleFieldValues>;
+    findOne(query: number | SingleRowValue): SingleRowValue;
     /**
      * Parses a key-value pair object into a fieldUuid-value pair object
      * @param data The key-value pair to be parsed
@@ -188,7 +149,7 @@ export declare class LiteBaseTable {
      * @throws Error
      * @throws TypeError
      */
-    insert(data: Record<string, PossibleFieldValues> | any[]): any[];
+    insert(data: SingleRowValue | any[]): any[];
     /**
      * Saves the table
      */
@@ -199,4 +160,3 @@ export declare class LiteBaseTable {
      */
     sync(): void;
 }
-export {};

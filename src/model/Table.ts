@@ -1,46 +1,16 @@
 import { LiteBaseStorage } from "./Storage";
 import crc32 from "crc-32";
 
-export type PossibleFieldValues = string | number | bigint | boolean;
-
-interface LiteBaseTableField {
-    type: "index" | "string" | "int" | "float" | "bigint" | "binary" | "enum" | "boolean",
-    autoIncrement?: boolean,
-    primary?: boolean,
-    null?: boolean,
-    default?: PossibleFieldValues
-}
-
-interface InternalLiteBaseTableField extends LiteBaseTableField {
-    /**
-     * The field unique ID
-     */
-    __uuid?: number,
-
-    /**
-     * The field last auto increment number
-     */
-    __autoIncrement?: number
-}
-
-/**
- * The litebase field identifier where
- * the key is the field name
- */
-export type LiteBaseSchema = { [fieldName: string]: LiteBaseTableField };
-
-/**
- * The internal litebase field identifier where
- * the key is the field name
- */
-export type InternalLiteBaseSchema = { [fieldName: string]: InternalLiteBaseTableField };
-
-/**
- * A single row value where
- * the key is the field unique ID and
- * the value is any possible field value
- */
-export type SingleRowValue = { [fieldUuid: number]: PossibleFieldValues };
+// Separate types for better reading
+import {
+    LiteBaseSchema,
+    LiteBaseTableField,
+    InternalLiteBaseSchema,
+    InternalLiteBaseTableField,
+    PossibleFieldValues,
+    SingleRowValue,
+    SingleSerializedlRowValue
+} from "../types/Table";
 
 /**
  * Default field values
@@ -278,7 +248,7 @@ export class LiteBaseTable {
             return null;
         }
 
-        const final: Record<string, PossibleFieldValues> = {};
+        const final: SingleRowValue = {};
 
         Object.keys(this.schema).forEach((key, index) => {
             final[key] = data[this.schema[key].__uuid];
@@ -292,7 +262,7 @@ export class LiteBaseTable {
      * @param query The query to be executed
      * @returns 
      */
-    public find(query?: Record<string, PossibleFieldValues>) {
+    public find(query?: SingleRowValue) {
         // If no query was given, return all rows
         if (query === undefined || query === null) {
             return Object.values(this.getDataCache()).map((v) => this.mapToStructure(v));
@@ -311,7 +281,7 @@ export class LiteBaseTable {
      * @param query The query to be executed
      * @returns 
      */
-    public findOne(query: number | Record<string, PossibleFieldValues>) {
+    public findOne(query: number | SingleRowValue) {
         if (typeof query === "number") {
             return this.mapToStructure(
                 this.getDataCache()[query as number]
@@ -332,7 +302,7 @@ export class LiteBaseTable {
      * @param data The key-value pair to be parsed
      * @returns 
      */
-    private parseValues(data: Record<string, PossibleFieldValues>) {
+    private parseValues(data: SingleRowValue) {
         const final: { [index: number]: PossibleFieldValues } = {};      
 
         // Iterate over the schema
@@ -452,7 +422,7 @@ export class LiteBaseTable {
      * @param item The item value
      * @returns 
      */
-    private setCacheItem(index: number, item: Record<string, PossibleFieldValues>) {
+    private setCacheItem(index: number, item: SingleRowValue) {
         this.storage.cache.data[this.name][index] = item;
         return this.save();
     }
@@ -462,7 +432,7 @@ export class LiteBaseTable {
      * @param field The row to be added
      * @returns 
      */
-    private getUniqueIndexFor(row: SingleRowValue) {
+    private getUniqueIndexFor(row: SingleSerializedlRowValue) {
         let primaryIndexField = this.getPrimaryIndexField();
 
         // Check if this table has an index row
@@ -492,7 +462,7 @@ export class LiteBaseTable {
      * @throws Error
      * @throws TypeError
      */
-    public insert(data: Record<string, PossibleFieldValues> | any[]): any[] {
+    public insert(data: SingleRowValue | any[]): any[] {
         if (typeof data === "undefined") {
             throw new Error("No data was given");
         }

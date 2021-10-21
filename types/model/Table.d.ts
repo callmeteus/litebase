@@ -1,5 +1,5 @@
 import { LiteBaseStorage } from "./Storage";
-import { LiteBaseSchema, InternalLiteBaseSchema, PossibleFieldValues, SingleRowValue } from "../types/Table";
+import { LiteBaseSchema, InternalLiteBaseSchema, SingleRowValue, SingleSerializedlRowValue } from "../types/Table";
 export declare class LiteBaseTable {
     /**
      * The table name
@@ -8,7 +8,7 @@ export declare class LiteBaseTable {
     /**
      * The table schema
      */
-    protected schema: InternalLiteBaseSchema;
+    schema: InternalLiteBaseSchema;
     /**
      * The table storage instance
      */
@@ -86,9 +86,7 @@ export declare class LiteBaseTable {
      * @returns
      */
     getDataCache(): {
-        [rowIndex: number]: {
-            [fieldUuid: number]: PossibleFieldValues;
-        };
+        [rowIndex: number]: SingleSerializedlRowValue;
     };
     /**
      * Retrieves a field index by name
@@ -102,24 +100,6 @@ export declare class LiteBaseTable {
      * @returns
      */
     private mapToStructure;
-    /**
-     * Executes the given query and returns all found values
-     * @param query The query to be executed
-     * @returns
-     */
-    find(query?: SingleRowValue): SingleRowValue[];
-    /**
-     * Executes the given query and returns one value
-     * @param query The query to be executed
-     * @returns
-     */
-    findOne(query: number | SingleRowValue): SingleRowValue;
-    /**
-     * Parses a key-value pair object into a fieldUuid-value pair object
-     * @param data The key-value pair to be parsed
-     * @returns
-     */
-    private parseValues;
     /**
      * Checks if this table has a primary-index field
      * @returns
@@ -138,11 +118,29 @@ export declare class LiteBaseTable {
      */
     private setCacheItem;
     /**
+     * Parses a key-value pair object into a fieldUuid-value pair object
+     * @param data The key-value pair to be parsed
+     * @returns
+     */
+    private parseValues;
+    /**
      * Retrieves a unique index for a row
      * @param field The row to be added
      * @returns
      */
     private getUniqueIndexFor;
+    /**
+    * Executes the given query and returns all found values
+    * @param query The query to be executed
+    * @returns
+    */
+    find(query?: SingleRowValue): SingleRowValue[];
+    /**
+     * Executes the given query and returns one value
+     * @param query The query to be executed
+     * @returns
+     */
+    findOne(query: number | SingleRowValue): SingleRowValue;
     /**
      * Inserts data to the table
      * @param data The data to be inserted
@@ -150,6 +148,17 @@ export declare class LiteBaseTable {
      * @throws TypeError
      */
     insert(data: SingleRowValue | any[]): any[];
+    /**
+     * Performs an update in the table
+     * @param data The data to be updated
+     * @param where The query to be searched to update
+     * @returns All changed rows
+     */
+    update(data: {
+        [K in keyof this["schema"]]: this["schema"][K]["type"];
+    }, where?: {
+        [K in keyof this["schema"]]: this["schema"][K]["type"];
+    }): SingleSerializedlRowValue[];
     /**
      * Saves the table
      */

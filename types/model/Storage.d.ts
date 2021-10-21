@@ -1,5 +1,5 @@
 import { LiteBaseTable } from "./Table";
-import { InternalLiteBaseSchema, PossibleFieldValues } from "../types/Table";
+import { InternalLiteBaseSchema, SingleSerializedlRowValue } from "../types/Table";
 export interface TableFileDescriptor {
     /**
      * The table checksum
@@ -16,11 +16,19 @@ export interface TableFileDescriptor {
      */
     schema: InternalLiteBaseSchema;
 }
+/**
+ * Supported compression methods
+ */
+export declare enum LiteBaseCompressionType {
+    NONE = 0,
+    ZLIB = 1
+}
 export interface LiteBaseOptions {
     /**
      * If can compress the database file
+     * If true, Zlib wil be used
      */
-    compress: boolean;
+    compress: boolean | LiteBaseCompressionType;
     /**
      * If needs to drop the schema (delete the database file)
      */
@@ -38,9 +46,7 @@ export declare class LiteBaseStorage {
         };
         data: {
             [tableName: string]: {
-                [rowIndex: number]: {
-                    [fieldUuid: number]: PossibleFieldValues;
-                };
+                [rowIndex: number]: SingleSerializedlRowValue;
             };
         };
     };

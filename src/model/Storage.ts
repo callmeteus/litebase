@@ -3,7 +3,7 @@ import msgpack from "msgpack-lite";
 import zlib from "zlib";
 
 import { LiteBaseTable } from "./Table";
-import { InternalLiteBaseSchema, PossibleFieldValues } from "../types/Table";
+import { InternalLiteBaseSchema, PossibleFieldValues, SingleSerializedlRowValue } from "../types/Table";
 
 export interface TableFileDescriptor {
     /**
@@ -55,9 +55,7 @@ export class LiteBaseStorage {
         },
         data: {
             [tableName: string]: {
-                [rowIndex: number]: {
-                    [fieldUuid: number]: PossibleFieldValues
-                }
+                [rowIndex: number]: SingleSerializedlRowValue
             }
         }
     } = null;

@@ -52,7 +52,7 @@ export class LiteBaseTable {
         /**
          * The table schema
          */
-        protected schema: InternalLiteBaseSchema,
+        public schema: InternalLiteBaseSchema,
 
         /**
          * The table storage instance
@@ -258,43 +258,34 @@ export class LiteBaseTable {
     }
 
     /**
-     * Executes the given query and returns all found values
-     * @param query The query to be executed
+     * Checks if this table has a primary-index field
      * @returns 
      */
-    public find(query?: SingleRowValue) {
-        // If no query was given, return all rows
-        if (query === undefined || query === null) {
-            return Object.values(this.getDataCache()).map((v) => this.mapToStructure(v));
-        }
-
-        return Object.values(this.getDataCache()).filter((data) => {
-            return Object.keys(query).some((field) => {
-                return query[field] === data[this.getFieldIndex(field)];
-            });
-        })
-        .map((v) => this.mapToStructure(v));
+    public hasPrimaryIndexField() {
+        return this.getPrimaryIndexField() !== undefined;
     }
 
     /**
-     * Executes the given query and returns one value
-     * @param query The query to be executed
+     * Retrieves the table primary-index field
      * @returns 
      */
-    public findOne(query: number | SingleRowValue) {
-        if (typeof query === "number") {
-            return this.mapToStructure(
-                this.getDataCache()[query as number]
-            );
-        }
-
-        return this.mapToStructure(
-            Object.values(this.getDataCache()).find((data) => {
-                return Object.keys(query).some((field) => {
-                    return query[field] === data[this.getFieldIndex(field)];
-                });
-            })
+    public getPrimaryIndexField() {
+        return Object.keys(this.schema).find((field) => 
+            this.schema[field].type === "index" &&
+            this.schema[field].primary &&
+            this.schema[field].autoIncrement
         );
+    }
+
+    /**
+     * Sets an item to the cache and save it
+     * @param index The item index
+     * @param item The item value
+     * @returns 
+     */
+    private setCacheItem(index: number, item: SingleRowValue) {
+        this.storage.cache.data[this.name][index] = item;
+        return this.save();
     }
 
     /**
@@ -397,37 +388,6 @@ export class LiteBaseTable {
     }
 
     /**
-     * Checks if this table has a primary-index field
-     * @returns 
-     */
-    public hasPrimaryIndexField() {
-        return this.getPrimaryIndexField() !== undefined;
-    }
-
-    /**
-     * Retrieves the table primary-index field
-     * @returns 
-     */
-    public getPrimaryIndexField() {
-        return Object.keys(this.schema).find((field) => 
-            this.schema[field].type === "index" &&
-            this.schema[field].primary &&
-            this.schema[field].autoIncrement
-        );
-    }
-
-    /**
-     * Sets an item to the cache and save it
-     * @param index The item index
-     * @param item The item value
-     * @returns 
-     */
-    private setCacheItem(index: number, item: SingleRowValue) {
-        this.storage.cache.data[this.name][index] = item;
-        return this.save();
-    }
-
-    /**
      * Retrieves a unique index for a row
      * @param field The row to be added
      * @returns 
@@ -456,6 +416,46 @@ export class LiteBaseTable {
         return values.indexOf(values.pop());
     }
 
+     /**
+     * Executes the given query and returns all found values
+     * @param query The query to be executed
+     * @returns 
+     */
+    public find(query?: SingleRowValue) {
+        // If no query was given, return all rows
+        if (query === undefined || query === null) {
+            return Object.values(this.getDataCache()).map((v) => this.mapToStructure(v));
+        }
+
+        return Object.values(this.getDataCache()).filter((data) => {
+            return Object.keys(query).some((field) => {
+                return query[field] === data[this.getFieldIndex(field)];
+            });
+        })
+        .map((v) => this.mapToStructure(v));
+    }
+
+    /**
+     * Executes the given query and returns one value
+     * @param query The query to be executed
+     * @returns 
+     */
+    public findOne(query: number | SingleRowValue) {
+        if (typeof query === "number") {
+            return this.mapToStructure(
+                this.getDataCache()[query as number]
+            );
+        }
+
+        return this.mapToStructure(
+            Object.values(this.getDataCache()).find((data) => {
+                return Object.keys(query).some((field) => {
+                    return query[field] === data[this.getFieldIndex(field)];
+                });
+            })
+        );
+    }
+
     /**
      * Inserts data to the table
      * @param data The data to be inserted
@@ -479,6 +479,36 @@ export class LiteBaseTable {
         this.setCacheItem(index, final);
 
         return Object.values(final);
+    }
+
+    /**
+     * Performs an update in the table
+     * @param data The data to be updated
+     * @param where The query to be searched to update
+     * @returns All changed rows
+     */
+    public update(data: {
+        [K in keyof this["schema"]]: this["schema"][K]["type"]
+    }, where?: {
+        [K in keyof this["schema"]]: this["schema"][K]["type"]
+    }) {
+        // Retrieve all keys for the where
+        const keys = where === undefined ? Object.keys(this.schema) : Object.keys(where);
+        const values = Object.values(this.getDataCache());
+
+        let found = where === undefined ? values : values.filter((value) => {
+            return keys.every((key) => value[this.getFieldIndex(key)] === where[key]);
+        });
+
+        for(let item of found) {
+            for(let key of Object.keys(data)) {
+                item[this.getFieldIndex(key)] = data[key];
+            }
+        }
+
+        this.save();
+
+        return found;
     }
 
     /**

@@ -76,6 +76,21 @@ describe("Default test", () => {
         it("should return one row with name Arzio", () => {
             assert.strictEqual(table.findOne(2).name, "Arzio", "A name different than Arzio was returned");
         });
+
+        it("should update isAlive to true", () => {
+            assert.strictEqual(
+                table.update({
+                    isAlive: true
+                }, {
+                    name: "Arzio"
+                }).length,
+                1, "No update or more than one updates were executed"
+            );
+
+            const arzio = table.findOne(2);
+
+            assert.strictEqual(arzio.isAlive, true, "Arzio is still not alive");
+        });
     });
 
     describe("Table schema restructure", () => {

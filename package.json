@@ -1,11 +1,12 @@
 {
   "name": "litebase",
-  "version": "1.0.1",
+  "version": "1.0.21",
   "description": "A single-file storage-based database engine written in TypeScript based in MessagePack.",
   "main": "out/index.js",
   "author": "Matheus Giovani <matheus@ad3com.com.br>",
   "license": "AGPL-3.0",
   "private": false,
+  "types": "types/",
   "scripts": {
     "watch": "npm-run-all -p -r watch-core test",
     "watch-core": "tsc -watch",

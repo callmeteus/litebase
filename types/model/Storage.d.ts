@@ -1,5 +1,9 @@
 import { LiteBaseTable } from "./Table";
 import { InternalLiteBaseSchema, SingleSerializedlRowValue } from "../types/Table";
+/**
+ * The descriptor for a table file
+ * @internal
+ */
 export interface TableFileDescriptor {
     /**
      * The table checksum
@@ -23,6 +27,9 @@ export declare enum LiteBaseCompressionType {
     NONE = 0,
     ZLIB = 1
 }
+/**
+ * All options to be passed to LiteBase
+ */
 export interface LiteBaseOptions {
     /**
      * If can compress the database file
@@ -35,10 +42,17 @@ export interface LiteBaseOptions {
     dropSchema: boolean;
 }
 export declare class LiteBaseStorage {
+    /**
+     * The storage filename
+     */
     protected filename: string;
+    /**
+     * The storage options
+     */
     protected options?: LiteBaseOptions;
     /**
      * The cache for the storage file
+     * @internal
      */
     cache: {
         tables: {
@@ -52,12 +66,21 @@ export declare class LiteBaseStorage {
     };
     /**
      * An array of registered tables
+     * @internal
      */
     private tables;
     /**
      * Creates a new LiteBase storage
      */
-    constructor(filename: string, options?: LiteBaseOptions);
+    constructor(
+    /**
+     * The storage filename
+     */
+    filename: string, 
+    /**
+     * The storage options
+     */
+    options?: LiteBaseOptions);
     /**
      * Sets a table data
      * @param table The table to be set

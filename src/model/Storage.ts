@@ -3,8 +3,12 @@ import msgpack from "msgpack-lite";
 import zlib from "zlib";
 
 import { LiteBaseTable } from "./Table";
-import { InternalLiteBaseSchema, PossibleFieldValues, SingleSerializedlRowValue } from "../types/Table";
+import { InternalLiteBaseSchema, SingleSerializedlRowValue } from "../types/Table";
 
+/**
+ * The descriptor for a table file
+ * @internal
+ */
 export interface TableFileDescriptor {
     /**
      * The table checksum
@@ -32,6 +36,9 @@ export enum LiteBaseCompressionType {
     ZLIB
 }
 
+/**
+ * All options to be passed to LiteBase
+ */
 export interface LiteBaseOptions {
     /**
      * If can compress the database file
@@ -48,6 +55,7 @@ export interface LiteBaseOptions {
 export class LiteBaseStorage {
     /**
      * The cache for the storage file
+     * @internal
      */
     public cache: {
         tables: {
@@ -62,6 +70,7 @@ export class LiteBaseStorage {
 
     /**
      * An array of registered tables
+     * @internal
      */
     private tables: LiteBaseTable[] = [];
 
@@ -69,7 +78,14 @@ export class LiteBaseStorage {
      * Creates a new LiteBase storage
      */
     constructor(
+        /**
+         * The storage filename
+         */
         protected filename: string,
+
+        /**
+         * The storage options
+         */
         protected options?: LiteBaseOptions
     ) {
         if (options.dropSchema && existsSync(filename)) {

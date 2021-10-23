@@ -6,3 +6,4 @@ export function open(filename: string, options: LiteBaseOptions) {
 }
 
 export { LiteBaseTable as Table };
+export { LiteBaseStorage as Storage };

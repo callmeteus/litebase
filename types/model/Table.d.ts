@@ -1,5 +1,17 @@
 import { LiteBaseStorage } from "./Storage";
-import { LiteBaseSchema, InternalLiteBaseSchema, SingleRowValue, SingleSerializedlRowValue } from "../types/Table";
+import { LiteBaseSchema, InternalLiteBaseSchema, SingleRowValue, SingleSerializedlRowValue, SingleQueryValue } from "../types/Table";
+export declare type Query = SingleQueryValue & {
+    [K in keyof typeof QueryKeywords]?: typeof QueryKeywords[K];
+};
+/**
+ * All query keywords / functions / helpers
+ */
+export declare const QueryKeywords: {
+    /**
+     * Used to limit the query results
+     */
+    LIMIT: symbol;
+};
 export declare class LiteBaseTable {
     /**
      * The table name
@@ -130,17 +142,23 @@ export declare class LiteBaseTable {
      */
     private getUniqueIndexFor;
     /**
-    * Executes the given query and returns all found values
-    * @param query The query to be executed
-    * @returns
-    */
-    find(query?: SingleRowValue): SingleRowValue[];
+     * Mounts and executes a query
+     * @param query The query to be executed
+     * @returns
+     */
+    private query;
+    /**
+     * Executes the given query and returns all found values
+     * @param query The query to be executed
+     * @returns
+     */
+    find(query?: Query): SingleRowValue[] | null;
     /**
      * Executes the given query and returns one value
      * @param query The query to be executed
      * @returns
      */
-    findOne(query: number | SingleRowValue): SingleRowValue;
+    findOne(query: number | Query): SingleRowValue | null;
     /**
      * Inserts data to the table
      * @param data The data to be inserted
@@ -156,9 +174,7 @@ export declare class LiteBaseTable {
      */
     update(data: {
         [K in keyof this["schema"]]: this["schema"][K]["type"];
-    }, where?: {
-        [K in keyof this["schema"]]: this["schema"][K]["type"];
-    }): SingleSerializedlRowValue[];
+    }, where?: Query): SingleSerializedlRowValue[];
     /**
      * Saves the table
      */

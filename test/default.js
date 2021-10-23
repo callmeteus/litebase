@@ -61,19 +61,19 @@ describe("Default test", () => {
             );
         });
 
-        it("should return one row with name Matheus", () => {
+        it("findOne({ name: Matheus }) should return one row with name Matheus", () => {
             assert.strictEqual(table.findOne({ name: "Matheus" }).name, "Matheus", "No row with name Matheus was found");
         });
 
-        it("should return zero rows", () => {
+        it("findOne({ name: Unknown }) should return zero rows", () => {
             assert.strictEqual(table.findOne({ name: "Unknown" }), null, "An invalid row was returned for a query that shold return 0 rows")
         });
 
-        it("should return two rows", () => {
+        it("find() should return two rows", () => {
             assert.strictEqual(table.find().length, 2, "A number different than 2 rows was returned");
         });
 
-        it("should return one row with name Arzio", () => {
+        it("findOne(2) should return one row with name Arzio", () => {
             assert.strictEqual(table.findOne(2).name, "Arzio", "A name different than Arzio was returned");
         });
 

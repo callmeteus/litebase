@@ -52,7 +52,7 @@ export type LiteBaseSchema = { [fieldName: string]: LiteBaseTableField };
  * The internal litebase field identifier where
  * the key is the field name
  */
-export type InternalLiteBaseSchema = { [fieldName: string]: InternalLiteBaseTableField };
+export type InternalLiteBaseSchema = { [fieldName: string | symbol]: InternalLiteBaseTableField };
 
 /**
  * A single row value where
@@ -60,6 +60,13 @@ export type InternalLiteBaseSchema = { [fieldName: string]: InternalLiteBaseTabl
  * the value is any possible field value
  */
 export type SingleRowValue = { [field: string]: PossibleFieldValues };
+
+/**
+ * A single query value where
+ * the key is the field name or a query field and
+ * the value is any possible field value
+ */
+export type SingleQueryValue = { [field: string | symbol]: PossibleFieldValues };
 
 /**
  * A single row value where

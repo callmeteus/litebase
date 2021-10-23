@@ -6,11 +6,25 @@ import {
     LiteBaseSchema,
     LiteBaseTableField,
     InternalLiteBaseSchema,
-    InternalLiteBaseTableField,
     PossibleFieldValues,
     SingleRowValue,
-    SingleSerializedlRowValue
+    SingleSerializedlRowValue,
+    SingleQueryValue
 } from "../types/Table";
+
+export type Query = SingleQueryValue & {
+    [K in keyof typeof QueryKeywords]?: typeof QueryKeywords[K]
+};
+
+/**
+ * All query keywords / functions / helpers
+ */
+export const QueryKeywords = {
+    /**
+     * Used to limit the query results
+     */
+    LIMIT: Symbol.for("LIMIT")
+};
 
 /**
  * Default field values
@@ -234,7 +248,7 @@ export class LiteBaseTable {
      * @param field The field name
      * @returns 
      */
-    private getFieldIndex(field: string) {
+    private getFieldIndex(field: string | symbol) {
         return this.schema[field].__uuid;
     }
     
@@ -243,7 +257,7 @@ export class LiteBaseTable {
      * @param data The data to be structured
      * @returns 
      */
-    private mapToStructure(data: Record<number, PossibleFieldValues>) {
+    private mapToStructure(data: SingleSerializedlRowValue) {
         if (data === null || data === undefined) {
             return null;
         }
@@ -416,23 +430,77 @@ export class LiteBaseTable {
         return values.indexOf(values.pop());
     }
 
-     /**
+    /**
+     * Mounts and executes a query
+     * @param query The query to be executed
+     * @returns 
+     */
+    private query(query?: Query) {
+        // Retrieve all values
+        const values = Object.values(this.getDataCache());
+
+        // If no query was given, return all rows
+        if (query === undefined || query === null) {
+            return values.map((v) => this.mapToStructure(v));
+        }
+
+        // The variable that will receive the mounted query
+        // with the field index instead of the field name
+        const finalQuery: Record<number, PossibleFieldValues> = {};
+        const keys: (string | symbol)[] = Object.keys(query);
+
+        let validKeys: number = 0;
+
+        // Prepare the index-value pairs
+        for(let key of keys) {
+            // Ignore query keywords
+            if (QueryKeywords[key as keyof typeof QueryKeywords] !== undefined) {
+                continue;
+            }
+
+            finalQuery[this.getFieldIndex(key)] = query[key];
+            validKeys++;
+        }
+
+        const result: SingleRowValue[] = [];
+        let i: number;
+        let k: any;
+
+        let limit = query[QueryKeywords.LIMIT] ? query[QueryKeywords.LIMIT] as number: Number.MAX_SAFE_INTEGER;
+
+        // Iterate over all database values
+        search:
+        for(i = 0; i < values.length; i++) {
+            // Iterate over all query fields
+            for(k in finalQuery) {
+                // If the query value doesn't match the row value, ignore it
+                if (finalQuery[k] != values[i][k]) {
+                    continue search;
+                }
+            }
+
+            result.push(
+                this.mapToStructure(
+                    values[i]
+                )
+            );
+
+            // Check if reached the limit
+            if (result.length >= limit) {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Executes the given query and returns all found values
      * @param query The query to be executed
      * @returns 
      */
-    public find(query?: SingleRowValue) {
-        // If no query was given, return all rows
-        if (query === undefined || query === null) {
-            return Object.values(this.getDataCache()).map((v) => this.mapToStructure(v));
-        }
-
-        return Object.values(this.getDataCache()).filter((data) => {
-            return Object.keys(query).some((field) => {
-                return query[field] === data[this.getFieldIndex(field)];
-            });
-        })
-        .map((v) => this.mapToStructure(v));
+    public find(query?: Query): SingleRowValue[] | null {
+        return this.query(query);
     }
 
     /**
@@ -440,20 +508,19 @@ export class LiteBaseTable {
      * @param query The query to be executed
      * @returns 
      */
-    public findOne(query: number | SingleRowValue) {
+    public findOne(query: number | Query): SingleRowValue | null {
         if (typeof query === "number") {
             return this.mapToStructure(
                 this.getDataCache()[query as number]
             );
         }
 
-        return this.mapToStructure(
-            Object.values(this.getDataCache()).find((data) => {
-                return Object.keys(query).some((field) => {
-                    return query[field] === data[this.getFieldIndex(field)];
-                });
+        return this.query(
+            Object.assign({}, query, {
+                // Limit to one result
+                [QueryKeywords.LIMIT]: 1
             })
-        );
+        )[0] || null;
     }
 
     /**
@@ -489,9 +556,7 @@ export class LiteBaseTable {
      */
     public update(data: {
         [K in keyof this["schema"]]: this["schema"][K]["type"]
-    }, where?: {
-        [K in keyof this["schema"]]: this["schema"][K]["type"]
-    }) {
+    }, where?: Query) {
         // Retrieve all keys for the where
         const keys = where === undefined ? Object.keys(this.schema) : Object.keys(where);
         const values = Object.values(this.getDataCache());

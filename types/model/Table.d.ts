@@ -1,16 +1,23 @@
 import { LiteBaseStorage } from "./Storage";
 import { LiteBaseSchema, InternalLiteBaseSchema, SingleRowValue, SingleSerializedlRowValue, SingleQueryValue } from "../types/Table";
-export declare type Query = SingleQueryValue & {
-    [K in keyof typeof QueryKeywords]?: typeof QueryKeywords[K];
+import * as QueryKeywords from "./Keywords";
+export declare enum QueryOrder {
+    DESC = "desc",
+    ASC = "asc"
+}
+/**
+ * Used to describe the query keyword accepted values
+ */
+export declare type IQueryKeywords = {
+    [QueryKeywords.LIMIT]: number;
+    [QueryKeywords.ORDER]: QueryOrder;
 };
 /**
- * All query keywords / functions / helpers
+ * Used to describe valid query parameters
+ * @internal
  */
-export declare const QueryKeywords: {
-    /**
-     * Used to limit the query results
-     */
-    LIMIT: symbol;
+export declare type Query = SingleQueryValue & {
+    [K in keyof IQueryKeywords]?: IQueryKeywords[K];
 };
 export declare class LiteBaseTable {
     /**

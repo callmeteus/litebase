@@ -12,18 +12,27 @@ import {
     SingleQueryValue
 } from "../types/Table";
 
-export type Query = SingleQueryValue & {
-    [K in keyof typeof QueryKeywords]?: typeof QueryKeywords[K]
-};
+import * as QueryKeywords from "./Keywords";
+
+export enum QueryOrder {
+    DESC = "desc",
+    ASC = "asc"
+}
 
 /**
- * All query keywords / functions / helpers
+ * Used to describe the query keyword accepted values
  */
-export const QueryKeywords = {
-    /**
-     * Used to limit the query results
-     */
-    LIMIT: Symbol.for("LIMIT")
+export type IQueryKeywords = {
+    [QueryKeywords.LIMIT]: number,
+    [QueryKeywords.ORDER]: QueryOrder
+}
+
+/**
+ * Used to describe valid query parameters
+ * @internal
+ */
+export type Query = SingleQueryValue & {
+    [K in keyof IQueryKeywords]?: IQueryKeywords[K]
 };
 
 /**
@@ -449,8 +458,6 @@ export class LiteBaseTable {
         const finalQuery: Record<number, PossibleFieldValues> = {};
         const keys: (string | symbol)[] = Object.keys(query);
 
-        let validKeys: number = 0;
-
         // Prepare the index-value pairs
         for(let key of keys) {
             // Ignore query keywords
@@ -459,7 +466,6 @@ export class LiteBaseTable {
             }
 
             finalQuery[this.getFieldIndex(key)] = query[key];
-            validKeys++;
         }
 
         const result: SingleRowValue[] = [];
@@ -468,9 +474,16 @@ export class LiteBaseTable {
 
         let limit = query[QueryKeywords.LIMIT] ? query[QueryKeywords.LIMIT] as number: Number.MAX_SAFE_INTEGER;
 
+        // The query order, defaults to DESC
+        let isAscending = query[QueryKeywords.ORDER] ? query[QueryKeywords.ORDER] === QueryOrder.ASC : false;
+
         // Iterate over all database values
         search:
-        for(i = 0; i < values.length; i++) {
+        for(
+            i = (isAscending ? 0 : values.length - 1);
+            (isAscending ? i < values.length : i >= 0);
+            (isAscending ? i++ : i--)
+        ) {
             // Iterate over all query fields
             for(k in finalQuery) {
                 // If the query value doesn't match the row value, ignore it

@@ -1,6 +1,7 @@
 const { open, Table } = require("../out");
 
 const assert = require("assert");
+const { QueryKeywords } = require("../out/model/Keywords");
 
 /**
  * @type {import("../types/model/Storage").LiteBaseStorage}
@@ -134,6 +135,30 @@ describe("Default test", () => {
             );
 
             assert.strictEqual(table.findOne(3).name, "Johnny", "The name should return Johnny");
+        });
+    });
+
+    describe("Query ordering", () => {
+        it("find({ name: Johnny, ORDER: desc }) should return Johnny", () => {
+            // Insert some data into the table
+            assert.strictEqual(
+                table.find({
+                    name: "Johnny",
+                    [QueryKeywords.ORDER]: "desc"
+                })[0].name,
+                "Johnny", "Should return Jonnny"
+            );
+        });
+
+        it("find({ name: Johnny, ORDER: asc }) should return Matheus", () => {
+            // Insert some data into the table
+            assert.strictEqual(
+                table.find({
+                    name: "Johnny",
+                    [QueryKeywords.ORDER]: "asc"
+                })[0].name,
+                "Johnny", "Should return Matheus"
+            );
         });
     });
 });

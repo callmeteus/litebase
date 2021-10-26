@@ -7,3 +7,8 @@ export const LIMIT: unique symbol = Symbol("LIMIT");
  * The query searching order
  */
 export const ORDER: unique symbol = Symbol("ORDER");
+
+export const QueryKeywords = {
+    LIMIT,
+    ORDER
+};
